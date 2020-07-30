@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Account Tax Template -->
+        <record id="account_tax_template" model="account.tax.template">
+            <field name="chart_template_id" ref="account_chart_template_cr"/>
+            <field name="name">Tax 13%</field>
+            <field name="amount">13</field>
+            <field name="type_tax_use">sale</field>
+            <field name="tax_group_id" ref="tax_group_13"/>
+            <field name="description">IVA</field>
+            <field name="sequence">10</field>
+            <field name="amount_type">percent</field>
+            <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0, {
+                    'factor_percent': 100,
+                    'repartition_type': 'base',
+                }),
+
+                (0,0, {
+                    'factor_percent': 100,
+                    'repartition_type': 'tax',
+                    'account_id': ref('current_liabilities_212101'),
+                }),
+            ]"/>
+            <field name="refund_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0, {
+                    'factor_percent': 100,
+                    'repartition_type': 'base',
+                }),
+
+                (0,0, {
+                    'factor_percent': 100,
+                    'repartition_type': 'tax',
+                    'account_id': ref('current_liabilities_212101'),
+                }),
+            ]"/>
+        </record>
+
+        <record id="purchase_tax_template" model="account.tax.template">
+            <field name="chart_template_id" ref="account_chart_template_cr"/>
+            <field name="name">Purchase Tax 13%</field>
+            <field name="amount">13</field>
+            <field name="type_tax_use">purchase</field>
+            <field name="tax_group_id" ref="tax_group_13"/>
+            <field name="description">IVA</field>
+            <field name="sequence">10</field>
+            <field name="amount_type">percent</field>
+            <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0, {
+                    'factor_percent': 100,
+                    'repartition_type': 'base',
+                }),
+
+                (0,0, {
+                    'factor_percent': 100,
+                    'repartition_type': 'tax',
+                    'account_id': ref('current_liabilities_212101'),
+                }),
+            ]"/>
+            <field name="refund_repartition_line_ids" eval="[(5, 0, 0),
+                (0,0, {
+                    'factor_percent': 100,
+                    'repartition_type': 'base',
+                }),
+
+                (0,0, {
+                    'factor_percent': 100,
+                    'repartition_type': 'tax',
+                    'account_id': ref('current_liabilities_212101'),
+                }),
+            ]"/>
+        </record>
+    </data>
+
+    <!-- Default Tax -->
+    <record id="revenue_450002" model="account.account.template">
+        <field name="tax_ids" eval="[(6,0,[ref('account_tax_template')])]"/>
+    </record>
+</odoo>

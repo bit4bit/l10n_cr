@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_account_debit_note_form_inherit" model="ir.ui.view">
+            <field name="name">account.debit.note.form.inherit</field>
+            <field name="model">account.debit.note</field>
+            <field name="inherit_id" ref="account_debit_note.view_account_debit_note"/>
+            <field name="arch" type="xml">
+                <field name="reason" position="after">
+                    <field name="reference_code_id"/>
+                </field>
+                <field name="date" position="after">
+                    <field name="copy_lines" attrs="{'invisible': [('move_type', 'in', ['in_invoice', 'out_invoice'])]}"/>
+                </field>
+                <field name="journal_id" position="after">
+                    <field name="reference_document_id"/>
+                    <field name="invoice_id"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <!-- Account Tax Group -->
+        <record id="account_chart_template_cr" model="account.chart.template">
+            <field name="name">Costa Rica Accounting Chart</field>
+            <field name="bank_account_code_prefix">111200</field>
+            <field name="cash_account_code_prefix">111100</field>
+            <field name="transfer_account_code_prefix">111400</field>
+            <field name="currency_id" ref="base.CRC"/>
+        </record>
+</odoo>
+
+
