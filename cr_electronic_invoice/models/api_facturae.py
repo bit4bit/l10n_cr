@@ -420,7 +420,7 @@ def gen_xml_v43(inv, sale_conditions, total_servicio_gravado,
 
     sb.Append('<Clave>' + inv.number_electronic + '</Clave>')
     sb.Append('<CodigoActividad>' +
-              inv.economic_activity_id.code + '</CodigoActividad>')
+              inv.company_id.activity_id.code + '</CodigoActividad>')
     sb.Append('<NumeroConsecutivo>' +
               inv.number_electronic[21:41] + '</NumeroConsecutivo>')
     sb.Append('<FechaEmision>' + inv.date_issuance + '</FechaEmision>')

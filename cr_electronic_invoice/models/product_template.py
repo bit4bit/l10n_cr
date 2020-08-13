@@ -13,17 +13,18 @@ class ProductElectronic(models.Model):
             [('code', '=', '04')], limit=1)
         return code_type_id or False
 
-    commercial_measurement = fields.Char(string="Commercial Unit", )
+    commercial_measurement = fields.Char(string="Commercial Unit")
+
     code_type_id = fields.Many2one(
         "code.type.product", string="Code Type", default=_default_code_type_id)
 
-    tariff_head = fields.Char(string="Tax rate for exporting invoices", )
+    tariff_head = fields.Char(string="Tax rate for exporting invoices")
 
     economic_activity_id = fields.Many2one(
-        "economic.activity", string="Economic Activity", )
+        "economic.activity", string="Economic Activity")
 
     non_tax_deductible = fields.Boolean(
-        string='Indicates if this product is non-tax deductible', default=False, )
+        string='Indicates if this product is non-tax deductible', default=False)
 
 
 class ProductCategory(models.Model):

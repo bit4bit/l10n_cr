@@ -14,6 +14,7 @@ from odoo.tools.misc import get_lang
 
 from . import api_facturae
 from .. import extensions
+from .. import crudops
 
 _logger = logging.getLogger(__name__)
 
@@ -161,12 +162,6 @@ class AccountInvoiceElectronic(models.Model):
     error_count = fields.Integer(
         string="Cantidad de errores", required=False, default="0")
 
-    economic_activity_id = fields.Many2one(
-        "economic.activity", string="Actividad Económica", compute='_get_economic_activities')
-
-    economic_activities_ids = fields.Many2many('economic.activity', string=u'Actividades Económicas',
-                                               compute='_get_economic_activities', context={'active_test': False})
-
     not_loaded_invoice = fields.Char(
         string='Numero Factura Original no cargada', readonly=True)
 
@@ -205,54 +200,6 @@ class AccountInvoiceElectronic(models.Model):
 
         # self.invoice_sequence_number_next = journal_next_number
         self.journal_id = journal and journal.id
-
-    @api.onchange('partner_id', 'company_id')
-    def _get_economic_activities(self):
-        
-        sql = ("""SELECT economic_activity.id,economic_activity.active,economic_activity.code,
-	            economic_activity.name, economic_activity.sale_type, economic_activity_res_partner_rel.economic_activity_id
-                FROM economic_activity 
-                INNER JOIN economic_activity_res_partner_rel
-                ON economic_activity.id = economic_activity_res_partner_rel.economic_activity_id
-                WHERE economic_activity_res_partner_rel.res_partner_id="""+str(7)+"""""")
-         
-        self.env.cr.execute(sql)
-        res_all = self.env.cr.fetchall()
-        result['id'] = res_all and res_all[0]['snameconomic_activity.id']
-
-
-
-        for inv in self:
-            if inv.type in ('in_invoice', 'in_refund'):
-                if inv.partner_id:
-                    inv.economic_activities_ids = inv.partner_id.economic_activities_ids
-                    inv.economic_activities_id = inv.partner_id.activity_id
-            else:
-                inv.economic_activities_ids = self.env['economic.activity'].search(
-                    [('active', '=', False)])
-                inv.economic_activities_id = inv.company_id.activity_id
-
-            # Temporal hack while Hacienda force us to use Economic activity per line
-            for line in inv.invoice_line_ids:
-                line.economic_activity_id = inv.economic_activities_id
-
-    #@api.onchange('partner_id', 'company_id')
-    #def _get_economic_activities(self):
-    #    economic_activities = 0
-
-    #    for inv in self:
-    #        if inv.type in ('in_invoice', 'in_refund'):
-    #            if inv.partner_id:
-    #                economic_activities = inv.partner_id.economic_activities_ids
-    #                inv.economic_activity_id = economic_activities and economic_activities.id
-    #        else:
-    #            economic_activities = self.env['economic.activity'].search(
-    #                [('active', '=', True)])
-    #            self.economic_activity_id = economic_activities and economic_activities.id
-
-            # Temporal hack while Hacienda force us to use Economic activity per line
-    #        for line in inv.invoice_line_ids:
-    #            line.economic_activity_id = inv.economic_activity_id
 
     @api.onchange('partner_id')
     def _partner_changed(self):
@@ -876,7 +823,8 @@ class AccountInvoiceElectronic(models.Model):
                                      attachments=[[inv.fname_xml_respuesta_tributacion, inv.fname_xml_respuesta_tributacion],
                                                   [inv.fname_xml_comprobante, inv.fname_xml_comprobante]],)
 
-                    sequence = inv.company_id.FEC_sequence_id.next_by_id()
+                    #sequence = inv.company_id.FEC_sequence_id.next_by_id()
+                    sequence = inv.get_invoice_sequence()
                     response_json = api_facturae.get_clave_hacienda(self,
                                                                     inv.tipo_documento,
                                                                     sequence,
@@ -1266,6 +1214,22 @@ class AccountInvoiceElectronic(models.Model):
                 inv.tipo_documento = 'disabled'
                 continue
 
+            if inv.tipo_documento in ("FE","NC") and inv.journal_id.code != "INV":
+                raise UserError(
+                    'El tipo de documento no corresponde con el diario de Factura Electrónica')
+            elif inv.tipo_documento == "FEE" and inv.journal_id.code != "FEEJ":
+                raise UserError(
+                    'El tipo de documento no corresponde con el diario de Factura de Exportación')
+            elif inv.tipo_documento == "TE" and inv.journal_id.code != "TEJ":
+                raise UserError(
+                    'El tipo de documento no corresponde con el diario de Factura de Tiquete Electrónico')
+            elif inv.tipo_documento == "ND" and inv.journal_id.code != "NDJ":
+                raise UserError(
+                    'El tipo de documento no corresponde con el diario de Factura de Notas de Débito')
+            elif inv.tipo_documento == "FEC" and inv.journal_id.code != "FECJ":
+                raise UserError(
+                    'El tipo de documento no corresponde con el diario de Factura de Factura de Compra')
+
             currency = inv.currency_id
 
             if (inv.invoice_id) and not (inv.reference_code_id and inv.reference_document_id):
@@ -1340,7 +1304,7 @@ class AccountInvoiceElectronic(models.Model):
                 raise UserError(
                     _('No hay tipo de cambio registrado para la moneda %s' % (currency.name)))
 
-            if inv.economic_activity_id.name == 'CLINICA, CENTROS MEDICOS, HOSPITALES PRIVADOS Y OTROS' and inv.payment_methods_id.sequence == '02':
+            if inv.company_id.activity_id.display_name == 'CLINICA, CENTROS MEDICOS, HOSPITALES PRIVADOS Y OTROS' and inv.payment_methods_id.sequence == '02':
                 iva_devuelto = 0
                 for i in inv.invoice_line_ids:
                     for t in i.tax_ids:
